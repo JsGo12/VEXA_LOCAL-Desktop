@@ -23,6 +23,23 @@ instance/
 case_documents/
 
 # Bases de datos, índices, logs y respaldos locales
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Virtual environments and local configuration
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# VEXA local data, credentials, indexes and logs
+.vexa_local/
+instance/
+case_documents/
 *.db
 *.sqlite
 *.sqlite3
@@ -56,3 +73,12 @@ ehthumbs.db
 # Temporales de Office y archivos temporales
 ~$*
 *.tmp
+
+# Build artifacts
+build/
+dist/
+*.spec
+node_modules/
+desktop/backend/build/
+desktop/backend/dist/
+desktop/electron/release/

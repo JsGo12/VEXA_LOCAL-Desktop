@@ -71,6 +71,16 @@ Set-Location .\desktop\electron
 
 El script verifica Node.js y Corepack, prepara la versión exacta de pnpm declarada en `package.json`, instala desde `pnpm-lock.yaml` y abre VEXA. No necesitas instalar pnpm globalmente ni ejecutar `corepack enable`. En siguientes inicios, desde `desktop\electron`, ejecuta `corepack pnpm start`. Ollama debe estar iniciado y tener un modelo de chat instalado.
 
+## Cuenta del administrador
+
+En una instalación sin administrador, VEXA crea una cuenta con el usuario `admin` al iniciar el backend y muestra directamente la pantalla de inicio de sesión. No existe una pantalla para registrar al administrador; la ruta antigua `/setup` solo redirige al login. La contraseña se genera aleatoriamente y se guarda como hash en SQLite. En el primer inicio, las credenciales se escriben en `%USERPROFILE%\.vexa_local\credenciales_admin_inicial.txt`. Entrega esos datos al administrador y elimina el archivo después. El administrador puede crear las cuentas de abogados desde el panel.
+
+También se pueden definir `VEXA_ADMIN_USERNAME` y `VEXA_ADMIN_PASSWORD` antes del primer inicio; la contraseña debe tener al menos 12 caracteres. No guardes credenciales reales en el repositorio.
+
+## Reiniciar los datos locales
+
+VEXA conserva sus cuentas, casos, archivos e índices entre ejecuciones; no borra esos datos al cerrar. Para empezar desde cero, cierra la aplicación y elimina `%USERPROFILE%\.vexa_local`. Esto borra permanentemente la base SQLite, los documentos, los índices y las claves locales; al siguiente inicio se genera una instalación nueva y otra contraseña inicial.
+
 ## Tipos de archivo y OCR
 
 El administrador puede cargar PDF, DOCX, XLSX, PPTX, TXT y CSV, hasta 30 MB por archivo. La extracción de texto de PDF escaneados requiere instalar Tesseract OCR por separado. Si Windows no encuentra el ejecutable, definan `VEXA_TESSERACT_CMD` con la ruta de `tesseract.exe` antes de iniciar VEXA. Sin Tesseract, los PDF con texto seleccionable y los demás formatos siguen funcionando.

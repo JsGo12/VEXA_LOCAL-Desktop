@@ -82,3 +82,11 @@ El instalador se genera en `desktop\electron\release`. La compilación requiere 
 ## Datos locales
 
 Las cuentas, expedientes y documentos de prueba se guardan localmente en el computador. No compartan bases de datos, archivos de expedientes ni información personal mediante GitHub.
+
+## Cuenta del administrador
+
+En una instalación sin administrador, VEXA crea automáticamente la cuenta `admin` y muestra directamente el inicio de sesión. No existe una página para registrar al administrador; la ruta anterior `/setup` redirige al login. La contraseña se genera aleatoriamente y se guarda como hash en SQLite. En el primer inicio se escribe en `%USERPROFILE%\.vexa_local\credenciales_admin_inicial.txt`; entrega esos datos al administrador y elimina el archivo después. El administrador puede crear las cuentas de abogados desde el panel.
+
+También puedes configurar `VEXA_ADMIN_USERNAME` y `VEXA_ADMIN_PASSWORD` antes del primer inicio. La contraseña debe tener al menos 12 caracteres. No guardes claves reales en el repositorio.
+
+Para reiniciar VEXA, cierra la aplicación y elimina `%USERPROFILE%\.vexa_local`. Esto borra permanentemente cuentas, casos, documentos, índices y claves; al siguiente inicio se crea una base vacía y una nueva credencial de administrador.

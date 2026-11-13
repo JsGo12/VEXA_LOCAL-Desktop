@@ -111,6 +111,34 @@ def initialize_db():
         if "summary" not in case_columns:
             db.execute("ALTER TABLE cases ADD COLUMN summary TEXT NOT NULL DEFAULT ''")
 
+        # Create one administrator on a fresh installation. Never embed a
+        # reusable password in source code that is published on GitHub.
+        db.execute("BEGIN IMMEDIATE")
+        admin_exists = db.execute("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1").fetchone()
+        if not admin_exists:
+            username = os.environ.get("VEXA_ADMIN_USERNAME", "admin").strip() or "admin"
+            password = os.environ.get("VEXA_ADMIN_PASSWORD")
+            if password and len(password) < 12:
+                raise RuntimeError("VEXA_ADMIN_PASSWORD debe tener al menos 12 caracteres.")
+            if not password:
+                password = secrets.token_urlsafe(24)
+                (DATA_DIR / "credenciales_admin_inicial.txt").write_text(
+                    "Credenciales iniciales de VEXA\n"
+                    f"Usuario: {username}\n"
+                    f"Contraseña inicial: {password}\n\n"
+                    "Entrega estos datos al administrador y elimina este archivo.\n",
+                    encoding="utf-8",
+                )
+            if db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+                raise RuntimeError(
+                    f"No se puede crear el administrador: el usuario '{username}' ya existe. "
+                    "Configura VEXA_ADMIN_USERNAME con otro nombre."
+                )
+            db.execute(
+                "INSERT INTO users(name, username, password_hash, role) VALUES (?, ?, ?, 'admin')",
+                ("Administrador VEXA", username, generate_password_hash(password)),
+            )
+
 
 initialize_db()
 
@@ -209,34 +237,15 @@ def assigned_cases(user_id: int):
 
 @app.route("/")
 def index():
-    with connect_db() as db:
-        has_users = db.execute("SELECT EXISTS(SELECT 1 FROM users)").fetchone()[0]
-    if not has_users:
-        return redirect(url_for("setup"))
     if g.user is None:
         return redirect(url_for("login"))
     return redirect(url_for("admin_dashboard" if g.user["role"] == "admin" else "lawyer_dashboard"))
 
 
 @app.route("/setup", methods=["GET", "POST"])
-def setup():
-    with connect_db() as db:
-        exists = db.execute("SELECT EXISTS(SELECT 1 FROM users)").fetchone()[0]
-        if exists:
-            return redirect(url_for("login"))
-        if request.method == "POST":
-            name = request.form.get("name", "").strip()
-            username = request.form.get("username", "").strip()
-            password = request.form.get("password", "")
-            if not name or not username or len(password) < 10:
-                flash("Completa los campos. La contraseña debe tener al menos 10 caracteres.", "error")
-            else:
-                db.execute("INSERT INTO users(name, username, password_hash, role) VALUES (?, ?, ?, 'admin')",
-                           (name, username, generate_password_hash(password)))
-                session.clear()
-                flash("Cuenta administradora creada. Inicia sesión para continuar.", "success")
-                return redirect(url_for("login"))
-    return render_template("setup.html")
+def setup_disabled():
+    """Redirect old bookmarks without allowing administrator registration."""
+    return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
